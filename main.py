@@ -8,7 +8,7 @@ headers = {
 }
 
 
-def scrape_amazon(searched_item, suffix:str) -> list[str]:
+def scrape_amazon(searched_item: str, suffix: str) -> list[str]:
     base_url = f"https://www.amazon.{suffix}/s?k={searched_item}"
     r = requests.get(base_url, headers=headers)
     html = BeautifulSoup(r.content, "lxml")
