@@ -7,12 +7,12 @@ headers = {
     " Chrome/106.0.0.0 Safari/537.36"
 }
 
-def okidoki(nimi):
-    def okidoki_l(leht, nimi):
+def okidoki_l(leht, nimi):
         okidoki_link = ("https://www.okidoki.ee/buy/all/?p={}&query={}".format(leht, nimi))
         # okidoki_link = ("https://www.okidoki.ee/buy/all/?query={}&price_from_value=0&price_to_value=0&p={}".format(nimi, leht))
         return okidoki_link
 
+def okidoki(nimi):
     big_list = []
     price = []
     title = []
@@ -46,11 +46,14 @@ def okidoki(nimi):
         for j in range(len(big_list[i])):
             title.append(big_list[i][j].find(attrs={"class":"horiz-offer-card__title-link"}).get_text())
             
+            # try:
+            #     price.append(big_list[i][j].find(attrs={"class":"horiz-offer-card__price-value"}).get_text().strip(" \n€").replace(" ", ""))
+            price.append(big_list[i][j].find(attrs={"class":"horiz-offer-card__price-value"}).get_text().strip(" \n€").replace(" ", ""))
+            # except:
+            #     price.append("0")
+
             try:
                 price.append(big_list[i][j].find(attrs={"class":"horiz-offer-card__price-value"}).get_text().strip(" \n€").replace(" ", ""))
-           
-            except:
-                price.append("0")
 
             link.append("https://www.okidoki.ee" + big_list[i][j].find(attrs={"class":"horiz-offer-card__title-link"}).get('href'))
 
@@ -59,4 +62,4 @@ def okidoki(nimi):
                 img.append(imgtemp)
 
     
-    return [title, price, link, img]
+    return [title, price, img, link]
