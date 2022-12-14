@@ -37,7 +37,6 @@ def scrape_amazon(searched_item: str, suffix: str) -> list[list[str]]:
     links = scrape_listing_links(searched_item, suffix)
     output_list = []
     for link in links:
-        print(link)
         r = requests.get(link, headers=headers)
         html = BeautifulSoup(r.content, "lxml")
         title = translator.translate(html.find("span", id="productTitle").get_text().strip()).text
