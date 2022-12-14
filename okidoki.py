@@ -7,70 +7,56 @@ headers = {
     " Chrome/106.0.0.0 Safari/537.36"
 }
 
-leht = 0
-min_hind = 0
-max_hind = 0
-nimi = "zenit"
-
-# def okidoki_l(nimi, min_hind, max_hind, leht):
-#     okidoki_link = ("https://www.okidoki.ee/buy/all/?query={}&price_from_value={}&price_to_value={}&p={}".format(nimi, min_hind, max_hind, leht))
-#     return okidoki_link
-
 def okidoki_l(leht, nimi):
     okidoki_link = ("https://www.okidoki.ee/buy/all/?p={}&query={}".format(leht, nimi))
+    # okidoki_link = ("https://www.okidoki.ee/buy/all/?query={}&price_from_value=0&price_to_value=0&p={}".format(nimi, leht))
     return okidoki_link
 
-def okidoki(min_hind, max_hind, nimi):
+def okidoki(nimi):
+    big_list = []
     price = []
     title = []
     link = []
     img = []
-    imgf = []
     leht = 0
+
     allikas = requests.get(okidoki_l(leht, nimi), headers = headers)
     r = BeautifulSoup(allikas.content, "lxml")
 
     kuulutuste_koguarv = (r.find(attrs={"class":"pager__current--total"})).text.strip()
-    print(kuulutuste_koguarv)
+   
     lehtede_arv = ceil(int(kuulutuste_koguarv) / 50)
-    print(lehtede_arv)
+  
 
-    #test
-    with open("html2.txt", "w", encoding="utf-8") as f:
-        f.write(str(r))
+    big_list.append(r.find_all(attrs={"class":"classifieds__item"}))
 
 
-    for i in range(lehtede_arv):
-        leht += 1
-        print(leht)
-        print(okidoki_l(leht, nimi))
-        allikas = requests.get(okidoki_l(leht, nimi), headers = headers)
-        print(allikas)
-        r = BeautifulSoup(allikas.content, "lxml")
-        # .find(attrs={"class":"classifieds classifieds--big-list"})
-        title.extend(r.find_all(attrs={"class":"horiz-offer-card__title-link"}))
-        price.extend(r.find_all(attrs={"class":"horiz-offer-card__price-value"}))
-        imgf.extend(r.find_all("img"))
-    
-    for i in range(len(price)):
-        pricetemp = price[i]
-        price[i] = pricetemp.get_text().strip(" \n€").replace(" ", "")
+    if lehtede_arv > 1:
+        leht = 1
+        for i in range(lehtede_arv - 1):
+            leht += 1
 
-    for i in range(len(title)):
-        titletemp = title[i]
-        title[i] = titletemp.get_text()
-        link.append("https://www.okidoki.ee" + titletemp.get('href'))
+            allikas = requests.get(okidoki_l(leht, nimi), headers = headers)
 
+            r = BeautifulSoup(allikas.content, "lxml")
 
-    for i in range(len(imgf)):
-        imgtemp = imgf[i]
-        imgtemp = imgtemp.get("src")
-        if imgtemp.startswith("//img") or imgtemp == "/assets/svg/offers/no-image.svg":
-            img.append(imgtemp)
+            big_list.append(r.find_all(attrs={"class":"classifieds__item"}))
+
+    for i in range(len(big_list)):
+        for j in range(len(big_list[i])):
+            title.append(big_list[i][j].find(attrs={"class":"horiz-offer-card__title-link"}).get_text())
+            
+            try:
+                price.append(big_list[i][j].find(attrs={"class":"horiz-offer-card__price-value"}).get_text().strip(" \n€").replace(" ", ""))
+           
+            except:
+                price.append("0")
+
+            link.append("https://www.okidoki.ee" + big_list[i][j].find(attrs={"class":"horiz-offer-card__title-link"}).get('href'))
+
+            imgtemp = big_list[i][j].find("img").get("src")
+            if imgtemp.startswith("//img") or imgtemp == "/assets/svg/offers/no-image.svg":
+                img.append(imgtemp)
 
     
     return [title, price, link, img]
-
-
-x = okidoki(min_hind, max_hind, nimi)
-print(len(x[0]), len(x[1]), len(x[2]), len(x[3]))
