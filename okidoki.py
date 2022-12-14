@@ -13,6 +13,8 @@ def okidoki_l(leht, nimi):
         return okidoki_link
 
 def okidoki(nimi):
+    nimi.replace(" ", "+")
+    products = []
     big_list = []
     price = []
     title = []
@@ -22,14 +24,10 @@ def okidoki(nimi):
 
     allikas = requests.get(okidoki_l(leht, nimi), headers = headers)
     r = BeautifulSoup(allikas.content, "lxml")
-
     kuulutuste_koguarv = (r.find(attrs={"class":"pager__current--total"})).text.strip()
-   
     lehtede_arv = ceil(int(kuulutuste_koguarv) / 50)
   
-
     big_list.append(r.find_all(attrs={"class":"classifieds__item"}))
-
 
     if lehtede_arv > 1:
         leht = 1
@@ -37,29 +35,25 @@ def okidoki(nimi):
             leht += 1
 
             allikas = requests.get(okidoki_l(leht, nimi), headers = headers)
-
             r = BeautifulSoup(allikas.content, "lxml")
-
             big_list.append(r.find_all(attrs={"class":"classifieds__item"}))
 
     for i in range(len(big_list)):
         for j in range(len(big_list[i])):
-            title.append(big_list[i][j].find(attrs={"class":"horiz-offer-card__title-link"}).get_text())
+            title = (big_list[i][j].find(attrs={"class":"horiz-offer-card__title-link"}).get_text())
             
-            # try:
-            #     price.append(big_list[i][j].find(attrs={"class":"horiz-offer-card__price-value"}).get_text().strip(" \n€").replace(" ", ""))
-            price.append(big_list[i][j].find(attrs={"class":"horiz-offer-card__price-value"}).get_text().strip(" \n€").replace(" ", ""))
-            # except:
-            #     price.append("0")
-
             try:
-                price.append(big_list[i][j].find(attrs={"class":"horiz-offer-card__price-value"}).get_text().strip(" \n€").replace(" ", ""))
+                price = (big_list[i][j].find(attrs={"class":"horiz-offer-card__price-value"}).get_text().strip(" \n€").replace(" ", ""))
+            except:
+                price = ""
 
-            link.append("https://www.okidoki.ee" + big_list[i][j].find(attrs={"class":"horiz-offer-card__title-link"}).get('href'))
+            link = ("https://www.okidoki.ee" + big_list[i][j].find(attrs={"class":"horiz-offer-card__title-link"}).get('href'))
 
             imgtemp = big_list[i][j].find("img").get("src")
             if imgtemp.startswith("//img") or imgtemp == "/assets/svg/offers/no-image.svg":
-                img.append(imgtemp)
+                img = (imgtemp)
+
+            products.append([title, price, img, link])
 
     
-    return [title, price, img, link]
+    return products
