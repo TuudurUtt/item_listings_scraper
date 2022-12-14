@@ -7,12 +7,12 @@ headers = {
     " Chrome/106.0.0.0 Safari/537.36"
 }
 
-def okidoki_l(leht, nimi):
-    okidoki_link = ("https://www.okidoki.ee/buy/all/?p={}&query={}".format(leht, nimi))
-    # okidoki_link = ("https://www.okidoki.ee/buy/all/?query={}&price_from_value=0&price_to_value=0&p={}".format(nimi, leht))
-    return okidoki_link
-
 def okidoki(nimi):
+    def okidoki_l(leht, nimi):
+        okidoki_link = ("https://www.okidoki.ee/buy/all/?p={}&query={}".format(leht, nimi))
+        # okidoki_link = ("https://www.okidoki.ee/buy/all/?query={}&price_from_value=0&price_to_value=0&p={}".format(nimi, leht))
+        return okidoki_link
+
     big_list = []
     price = []
     title = []
