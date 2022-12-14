@@ -1,49 +1,42 @@
 import tkinter as tk
 
-w = tk.Tk()
-w.title("Scraper")
-w.geometry("800x600")
-# entry = tk.Entry(parent, options)
+window = tk.Tk()
+
+window.title("Scrape Prices")
+
+window.geometry("300x200")
 
 def scrape():
-    product = product_var.get()
-    price_min = price_min_var.get()
-    price_max = price_max_var.get()
+    product_name = product_name_input.get()
+    min_price = min_price_input.get()
+    max_price = max_price_input.get()
 
-    print(product, price_min, price_max)
+    print(product_name, min_price, max_price)
 
-    product_var.set("")
-    price_min_var.set("")
-    price_max_var.set("")
+    product_name_input.delete(0, tk.END)
+    min_price_input.delete(0, tk.END)
+    max_price_input.delete(0, tk.END)
 
-frm = tk.Frame(Tk(), padding=10)
-frm.grid()
-product_var = tk.StringVar()
-price_min_var = tk.StringVar()
-price_max_var = tk.StringVar()
 
-product_label = tk.Label(w, text = "Product name", font = ("calibre", 10, "bold"))
-product_entry = tk.Entry(w, textvariable = product_var, font = ("calibre", 10, "normal"))
+max_price_label = tk.Label(window, text="Maximum Price:",font = ("calibre", 10, "bold"))
+max_price_label.pack()
 
-price_min_label = tk.Label(w, text = "Minimum price", font = ("calibre", 10, "bold"))
-price_min_entry = tk.Entry(w, textvariable = price_min_var, font = ("calibre", 10, "normal"))
+max_price_input = tk.Entry(window)
+max_price_input.pack()
 
-price_max_label = tk.Label(w, text = "Maximum price", font = ("calibre", 10, "bold"))
-price_max_entry = tk.Entry(w, textvariable = price_max_var, font = ("calibre", 10, "normal"))
+min_price_label = tk.Label(window, text="Minimum Price:",font = ("calibre", 10, "bold"))
+min_price_label.pack()
 
-scrape_btn = tk.Button(w, text = "SCRAPE", command = scrape)
+min_price_input = tk.Entry(window)
+min_price_input.pack()
 
-product_label.grid(row=0, column=0)
-product_entry.grid(row=0, column=1)
+product_name_label = tk.Label(window, text="Product Name:",font = ("calibre", 10, "bold"))
+product_name_label.pack()
 
-price_min_label.grid(row=1, column=0)
-price_min_entry.grid(row=1, column=1)
+product_name_input = tk.Entry(window)
+product_name_input.pack()
 
-price_max_label.grid(row=2, column=0)
-price_max_entry.grid(row=2, column=1)
+scrape_button = tk.Button(window, text="Scrape", command=scrape)
+scrape_button.pack()
 
-w_input = scrape_btn.grid(row=3, column=0)
-
-w.mainloop()
-
-print(w_input)
+window.mainloop()
