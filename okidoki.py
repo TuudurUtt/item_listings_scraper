@@ -24,7 +24,11 @@ def okidoki(nimi):
 
     allikas = requests.get(okidoki_l(leht, nimi), headers = headers)
     r = BeautifulSoup(allikas.content, "lxml")
-    kuulutuste_koguarv = (r.find(attrs={"class":"pager__current--total"})).text.strip()
+    try:
+        kuulutuste_koguarv = (r.find(attrs={"class":"pager__current--total"})).text.strip()
+    except:
+        return []
+
     lehtede_arv = ceil(int(kuulutuste_koguarv) / 50)
   
     big_list.append(r.find_all(attrs={"class":"classifieds__item"}))
@@ -57,3 +61,7 @@ def okidoki(nimi):
 
     
     return products
+
+x = okidoki("epoxy road paint")
+print(x)
+print(len(x))
