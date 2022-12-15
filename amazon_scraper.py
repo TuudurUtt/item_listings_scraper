@@ -52,7 +52,8 @@ def scrape_amazon(searched_item: str, suffix: str, translation=False) -> list[li
                 .get_text().translate({ord(x): None for x in '£$€.,'}).isnumeric():
             product_price = "Varies"
         else:
-            product_price = html.find("span", class_="a-offscreen").get_text().translate({ord(','): "."})
+            product_price = html.find("span", class_="a-offscreen").get_text()
+            product_price = product_price[::-1].replace(",", ".", 1)[::-1]
 
         if not html.find("div", id="imgTagWrapperId"):
             image_link = " "
