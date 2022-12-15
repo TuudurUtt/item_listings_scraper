@@ -2,62 +2,57 @@ import requests
 from bs4 import BeautifulSoup
 from math import ceil
 
+
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)"
     " Chrome/106.0.0.0 Safari/537.36"
 }
 
-def okidoki_l(leht, nimi):
-        okidoki_link = ("https://www.okidoki.ee/buy/all/?p={}&query={}".format(leht, nimi))
-        # okidoki_link = ("https://www.okidoki.ee/buy/all/?query={}&price_from_value=0&price_to_value=0&p={}".format(nimi, leht))
-        return okidoki_link
 
-def okidoki(nimi):
-    nimi.replace(" ", "+")
-    products = []
-    big_list = []
-    price = []
-    title = []
-    link = []
-    img = []
-    leht = 0
+def okidoki_link(leht, nimi):
+    link = ("https://www.okidoki.ee/buy/all/?p={}&query={}".format(leht, nimi))
+    return link
 
-    allikas = requests.get(okidoki_l(leht, nimi), headers = headers)
-    r = BeautifulSoup(allikas.content, "lxml")
+
+def okidoki(product_name):
+    product_name.replace(" ", "+")
+    output_list = []
+
+    r = requests.get(okidoki_link(0, product_name), headers=headers)
+    html = BeautifulSoup(r.content, "lxml")
     try:
-        kuulutuste_koguarv = (r.find(attrs={"class":"pager__current--total"})).text.strip()
-    except:
+        lehtede_arv = ceil(int((html.find(class_="pager__current--total")).text.strip()) / 50)
+    except AttributeError:
         return []
 
-    lehtede_arv = ceil(int(kuulutuste_koguarv) / 50)
-  
-    big_list.append(r.find_all(attrs={"class":"classifieds__item"}))
-
+    product_htmls = html.find_all(class_="classifieds__item")
     if lehtede_arv > 1:
-        leht = 1
         for i in range(lehtede_arv - 1):
-            leht += 1
+            r = requests.get(okidoki_link(i + 1, product_name), headers=headers)
+            html = BeautifulSoup(r.content, "lxml")
+            product_htmls.extend(html.find_all(class_="classifieds__item"))
 
-            allikas = requests.get(okidoki_l(leht, nimi), headers = headers)
-            r = BeautifulSoup(allikas.content, "lxml")
-            big_list.append(r.find_all(attrs={"class":"classifieds__item"}))
+    for i in range(len(product_htmls)):
+        if not product_htmls[i].find(class_="horiz-offer-card__title-link"):
+            continue
+        title = product_htmls[i].find(class_="horiz-offer-card__title-link").get_text()
 
-    for i in range(len(big_list)):
-        for j in range(len(big_list[i])):
-            title = (big_list[i][j].find(attrs={"class":"horiz-offer-card__title-link"}).get_text())
-            
-            try:
-                price = (big_list[i][j].find(attrs={"class":"horiz-offer-card__price-value"}).get_text().strip(" \n€").replace(" ", ""))
-            except:
-                price = ""
+        if not product_htmls[i].find(class_="horiz-offer-card__price-value"):
+            product_price = "Varies"
+        else:
+            product_price = product_htmls[i].find(class_="horiz-offer-card__price-value")\
+                .get_text().strip(" \n€").replace(" ", "")
 
-            link = ("https://www.okidoki.ee" + big_list[i][j].find(attrs={"class":"horiz-offer-card__title-link"}).get('href'))
+        if not product_htmls[i].find(class_="horiz-offer-card__title-link"):
+            continue
+        link = ("https://www.okidoki.ee" + product_htmls[i].find(class_="horiz-offer-card__title-link").get('href'))
 
-            imgtemp = big_list[i][j].find("img").get("src")
-            if imgtemp.startswith("//img") or imgtemp == "/assets/svg/offers/no-image.svg":
-                img = (imgtemp)
+        if not product_htmls[i].find("img"):
+            image_link = " "
+        else:
+            imgtemp = product_htmls[i].find("img", ).get("src")
+            image_link = "https://www.okidoki.ee" + imgtemp if imgtemp.startswith("//img") or\
+                imgtemp == "/assets/svg/offers/no-image.svg" else " "
 
-            products.append([title, price, img, link])
-
-    
-    return products
+        output_list.append([title, product_price, image_link, link])
+    return output_list

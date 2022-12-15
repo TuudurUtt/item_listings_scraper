@@ -5,28 +5,29 @@ from gui import Gui
 import xlsxwriter
 
 
-def filter_prices(scrapes: list[list], price_min=None, price_max=None) -> list[list]:
+def filter_prices(listings: list[list], price_min=None, price_max=None) -> list[list]:
     if not price_max and not price_min:
-        return scrapes
-    for scrape in scrapes:
-        if scrape[1].replace(".£$€", "").isnumeric() and\
-                float(price_max) < float(scrape[1].replace(".£$€", "")) < float(price_min):
-            scrapes.remove(scrape)
-    return scrapes
+        return listings
+    price_max = 0 if not price_max else price_max
+    price_min = 0 if not price_min else price_min
+    for scrape in listings:
+        if scrape[1].translate({ord(x): None for x in '£$€.,'}).isnumeric() and\
+                float(price_max) < float(scrape[1].translate({ord(x): None for x in '£$€,'})) < float(price_min):
+            listings.remove(scrape)
+    return listings
 
 
-def write_worksheet_contents(worksheet: xlsxwriter.workbook.Worksheet, scrapings_data: list[list]) -> None:
+def add_worksheet(xlsx_file: xlsxwriter.workbook, listings_data: list[list], worksheet_name: str) -> None:
+    worksheet = xlsx_file.add_worksheet(worksheet_name)
     worksheet.write(0, 0, "Name")
     worksheet.write(0, 1, "Price")
     worksheet.write(0, 2, "Image")
     worksheet.write(0, 3, "Link")
 
-    if scrapings_data:
-        for i, scraping in enumerate(scrapings_data):
-            worksheet.write(i + 1, 0, scraping[0])
-            worksheet.write(i + 1, 1, scraping[1])
-            worksheet.write(i + 1, 2, scraping[2])
-            worksheet.write(i + 1, 3, scraping[3])
+    if listings_data:
+        for i, scraping in enumerate(listings_data):
+            for j in range(4):
+                worksheet.write(i + 1, j, scraping[j])
 
 
 if __name__ == '__main__':
@@ -36,26 +37,15 @@ if __name__ == '__main__':
             product_name, max_price, min_price = input_gui.returns
             break
 
-    amazon_scrapes_us = filter_prices(scrape_amazon(product_name, "com"), price_min=min_price, price_max=max_price)
-    print(amazon_scrapes_us)
-    amazon_scrapes_uk = filter_prices(scrape_amazon(product_name, "co.uk"), price_min=min_price, price_max=max_price)
-    print(amazon_scrapes_uk)
-    amazon_scrapes_german = filter_prices(scrape_amazon(product_name, "de"), price_min=min_price, price_max=max_price)
-    print(amazon_scrapes_german)
-    okidoki_scrapes = filter_prices(okidoki(product_name), price_min=min_price, price_max=max_price)
-    print(okidoki_scrapes)
-    soov_scrapes = filter_prices(scrape_soov(product_name), price_min=min_price, price_max=max_price)
-    print(soov_scrapes)
+    amazon_listings_us = filter_prices(scrape_amazon(product_name, "com"), min_price, max_price)
+    amazon_listings_uk = filter_prices(scrape_amazon(product_name, "co.uk"), min_price, max_price)
+    amazon_listings_german = filter_prices(scrape_amazon(product_name, "de"), min_price, max_price)
+    okidoki_listings = filter_prices(okidoki(product_name), min_price, max_price)
+    soov_listings = filter_prices(scrape_soov(product_name), min_price, max_price)
 
     with xlsxwriter.Workbook("scraping_outputs.xlsx") as file:
-        amazon_scrapes_us_worksheet = file.add_worksheet("amazon.com")
-        amazon_scrapes_uk_worksheet = file.add_worksheet("amazon.uk")
-        amazon_scrapes_german_worksheet = file.add_worksheet("amazon.de")
-        okidoki_scrapes_worksheet = file.add_worksheet("okidoki.ee")
-        soov_scrapes_worksheet = file.add_worksheet("soov.ee")
-
-        write_worksheet_contents(amazon_scrapes_us_worksheet, amazon_scrapes_us)
-        write_worksheet_contents(amazon_scrapes_uk_worksheet, amazon_scrapes_uk)
-        write_worksheet_contents(amazon_scrapes_german_worksheet, amazon_scrapes_german)
-        write_worksheet_contents(okidoki_scrapes_worksheet, okidoki_scrapes)
-        write_worksheet_contents(soov_scrapes_worksheet, soov_scrapes)
+        add_worksheet(file, amazon_listings_us, "amazon.com")
+        add_worksheet(file, amazon_listings_uk, "amazon.uk")
+        add_worksheet(file, amazon_listings_german, "amazon.de")
+        add_worksheet(file,  okidoki_listings, "okidoki.ee")
+        add_worksheet(file, soov_listings, "soov.ee")

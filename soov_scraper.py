@@ -34,7 +34,7 @@ def scrape_soov(searched_item: str) -> list[list[str]]:
         if not html.find("span", class_="a-offscreen"):
             product_price = "Varies"
         else:
-            product_price = html.find("span", class_="media-heading").get_text().strip()
+            product_price = html.find("span", class_="media-heading").get_text().translate({ord(','): "."})
 
         if not html.find("div", class_="product-image relative"):
             image_link = " "

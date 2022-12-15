@@ -48,10 +48,11 @@ def scrape_amazon(searched_item: str, suffix: str, translation=False) -> list[li
 
         if not html.find("span", class_="a-offscreen"):
             product_price = "Varies"
+        elif not html.find("span", class_="a-offscreen")\
+                .get_text().translate({ord(x): None for x in '£$€.,'}).isnumeric():
+            product_price = "Varies"
         else:
-            product_price = html.find("span", class_="a-offscreen").get_text().strip().replace(",", ".")
-            if not product_price.replace(".@£$", "").isnumeric():
-                product_price = "Varies"
+            product_price = html.find("span", class_="a-offscreen").get_text().translate({ord(','): "."})
 
         if not html.find("div", id="imgTagWrapperId"):
             image_link = " "
@@ -59,5 +60,4 @@ def scrape_amazon(searched_item: str, suffix: str, translation=False) -> list[li
             image_link = html.find("div", id="imgTagWrapperId").find("img").get("src")
 
         output_list.append([title, product_price, image_link, link])
-        print(title, product_price, image_link, link)
     return output_list
