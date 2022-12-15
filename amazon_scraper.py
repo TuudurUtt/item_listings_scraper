@@ -33,16 +33,31 @@ def scrape_listing_links(searched_item: str, suffix: str,
         return product_links
 
 
-def scrape_amazon(searched_item: str, suffix: str) -> list[list[str]]:
+def scrape_amazon(searched_item: str, suffix: str, translation=False) -> list[list[str]]:
     links = scrape_listing_links(searched_item, suffix)
     output_list = []
     for link in links:
         r = requests.get(link, headers=headers)
         html = BeautifulSoup(r.content, "lxml")
-        title = translator.translate(html.find("span", id="productTitle").get_text().strip()).text
-        product_price = html.find("span", class_="a-offscreen").get_text().strip().replace(",", ".")
-        image_link = html.find("div", id="imgTagWrapperId").find("img").get("src")
-        if not product_price[:-1].replace(".", "").isnumeric():
+
+        if not html.find("span", id="productTitle"):
+            continue
+        title = html.find("span", id="productTitle").get_text().strip()
+        if translation:
+            title = translator.translate(title)
+
+        if not html.find("span", class_="a-offscreen"):
             product_price = "Varies"
+        else:
+            product_price = html.find("span", class_="a-offscreen").get_text().strip().replace(",", ".")
+            if not product_price.replace(".@£$", "").isnumeric():
+                product_price = "Varies"
+
+        if not html.find("div", id="imgTagWrapperId"):
+            image_link = " "
+        else:
+            image_link = html.find("div", id="imgTagWrapperId").find("img").get("src")
+
         output_list.append([title, product_price, image_link, link])
+        print(title, product_price, image_link, link)
     return output_list

@@ -61,7 +61,3 @@ def okidoki(nimi):
 
     
     return products
-
-x = okidoki("epoxy road paint")
-print(x)
-print(len(x))

@@ -14,7 +14,7 @@ def scrape_listing_links(searched_item: str, iteration=1, product_links=None) ->
     r = requests.get(f"https://soov.ee/keyword-{searched_item}/tuup-müüa/{iteration}/listings.html", headers=headers)
     html = BeautifulSoup(r.content, "lxml")
     product_links += {listing.find("a").get("href") for listing in html.find_all("h5", class_="add-title")}
-    if len(html.find_all("a", class_="pagination-btn")) < 2:
+    if 0 < len(html.find_all("a", class_="pagination-btn")) < 2:
         return scrape_listing_links(searched_item, iteration=iteration + 1, product_links=product_links)
     else:
         return product_links
@@ -26,8 +26,20 @@ def scrape_soov(searched_item: str) -> list[list[str]]:
     for link in links:
         r = requests.get(link, headers=headers)
         html = BeautifulSoup(r.content, "lxml")
+
+        if not html or not html.find("span", id="productTitle"):
+            continue
         title = html.find("span", id="lid").get_text()
-        product_price = html.find("span", class_="media-heading").get_text().strip()
-        image_link = html.find("div", class_="product-image relative").find("img").get("src")
+
+        if not html.find("span", class_="a-offscreen"):
+            product_price = "Varies"
+        else:
+            product_price = html.find("span", class_="media-heading").get_text().strip()
+
+        if not html.find("div", class_="product-image relative"):
+            image_link = " "
+        else:
+            image_link = html.find("div", class_="product-image relative").find("img").get("src")
+
         output_list.append([title, product_price, image_link, link])
     return output_list
