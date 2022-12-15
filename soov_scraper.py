@@ -14,7 +14,7 @@ def scrape_listing_links(searched_item: str, iteration=1, product_links=None) ->
     r = requests.get(f"https://soov.ee/keyword-{searched_item}/tuup-müüa/{iteration}/listings.html", headers=headers)
     html = BeautifulSoup(r.content, "lxml")
     product_links += {listing.find("a").get("href") for listing in html.find_all("h5", class_="add-title")}
-    if 0 < len(html.find_all("a", class_="pagination-btn")) < 2:
+    if "»" in [x.get_text() for x in html.find_all("a", class_="pagination-btn")]:
         return scrape_listing_links(searched_item, iteration=iteration + 1, product_links=product_links)
     else:
         return product_links
